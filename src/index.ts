@@ -8,6 +8,7 @@ import { AppDataSource } from "./config/data-source";
 import { createServer, Server as HttpServer } from "http";
 import { ENV } from "./config/env";
 
+import nodeRoutes from "./routes/node.routes";
 const app: Application = express();
 const port = process.env.PORT ? parseInt(process.env.PORT) : 3000;
 
@@ -29,6 +30,9 @@ app.use(express.json({ limit: "50mb" }));
 app.get("/", (req, res) => {
   res.send("Hello, World!");
 });
+
+// node routes
+app.use(`/api/v${ENV.version}/node`, nodeRoutes);
 
 // Connect to the database
 AppDataSource.initialize()
