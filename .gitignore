@@ -4,3 +4,4 @@ node_modules/
 # TypeScript compiled files
 dist/
 build/
+logs/

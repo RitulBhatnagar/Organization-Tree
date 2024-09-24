@@ -11,7 +11,7 @@ interface Env {
   PORT: string;
   DB_HOST: string;
   DB_PORT: string;
-  DB_USER: string;
+  DB_USERNAME: string;
   DB_PASSWORD: string;
   DB_DATABASE: string;
   version: number;
@@ -22,7 +22,7 @@ export const ENV: Env = {
   PORT: process.env.PORT || "",
   DB_HOST: process.env.DB_HOST || "localhost",
   DB_PORT: process.env.DB_PORT || "5432",
-  DB_USER: process.env.DB_USER || "your_db_username",
+  DB_USERNAME: process.env.DB_USERNAME || "your_DB_USERNAME",
   DB_PASSWORD: process.env.DB_PASSWORD || "your_db_password",
   DB_DATABASE: process.env.DB_DATABASE || "your_db_name",
   version: parseInt(process.env.VERSION || "1"),
@@ -34,7 +34,7 @@ const requiredVars = [
   "PORT",
   "DB_HOST",
   "DB_PORT",
-  "DB_USER",
+  "DB_USERNAME",
   "DB_PASSWORD",
   "DB_DATABASE",
 ] as const;

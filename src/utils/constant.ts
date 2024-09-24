@@ -23,4 +23,10 @@ export enum ErrorCommonStrings {
   NOT_ALLOWED = "MethodNotAllowedError",
   TRANSACTION_FAILED = "transactionFailed",
 }
-export const localConstant = {};
+export const localConstant = {
+  ERROR_CREATING_ORGANIZATION: "Error creating organization",
+  ERROR_CREATING_LOCATION: "Error creating location",
+  ERROR_CREATING_EMPLOYEE: "Error creating employee",
+  ERROR_CREATING_DEPARTMENT: "Error creating department",
+  ERROR_GETTING_ORGANIZATION: "Error getting organization",
+};

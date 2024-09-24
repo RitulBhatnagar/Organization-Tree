@@ -4,7 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node dist/index",
+    "dev": "tsc-watch --onSuccess \"node ./dist/index.js\"",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc -p . && npm run sentry:sourcemaps"
   },
   "keywords": [],
   "author": "",
@@ -13,7 +16,10 @@
     "@types/dotenv-safe": "^8.1.6",
     "@types/express": "^4.17.21",
     "@types/node": "^22.5.5",
+    "@types/uuid": "^10.0.0",
+    "@types/yauzl": "^2.10.3",
     "ts-node": "^10.9.2",
+    "tsc-watch": "^6.2.0",
     "typescript": "^5.6.2"
   },
   "dependencies": {
@@ -22,10 +28,12 @@
     "dotenv": "^16.4.5",
     "dotenv-safe": "^9.1.0",
     "express": "^4.21.0",
+    "mysql2": "^3.11.3",
     "reflect-metadata": "^0.2.2",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
     "typeorm": "^0.3.20",
+    "uuid": "^10.0.0",
     "winston": "^3.14.2",
     "winston-daily-rotate-file": "^5.0.0"
   }
