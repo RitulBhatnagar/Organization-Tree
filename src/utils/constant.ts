@@ -29,4 +29,6 @@ export const localConstant = {
   ERROR_CREATING_EMPLOYEE: "Error creating employee",
   ERROR_CREATING_DEPARTMENT: "Error creating department",
   ERROR_GETTING_ORGANIZATION: "Error getting organization",
+  ERROR_UPDATING_NODE: "Error updating node",
+  ERROR_DELETING_NODE: "Error deleting node",
 };
