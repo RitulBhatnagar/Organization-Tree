@@ -1,5 +1,6 @@
 import { NodeType } from "../entities/node/nodeEntity";
 import { Node } from "../entities/node/nodeEntity";
+import { Organization } from "../entities/organization/organizationEntity";
 import { AppDataSource } from "../config/data-source";
 import APIError, { HttpStatusCode } from "../middleware/errorMiddlware";
 import { ErrorCommonStrings } from "../utils/constant";
@@ -9,37 +10,93 @@ import { v4 as uuidv4 } from "uuid";
 interface TreeNode extends Node {
   children?: TreeNode[]; // Add children property
 }
+
+const colorPool = [
+  "#F6AF8E",
+  "#C3A5FF",
+  "#B1D0A5",
+  "#F6ED8E",
+  "#8EF4F6",
+  "#C0F68E",
+  "#F68ECB",
+  "#8E97F6",
+  "#F68EAB",
+  "#F6CE8E",
+  "#DFF68E",
+];
 export class NodeService {
   private nodeRepo = AppDataSource.getRepository(Node);
+  private organizationRepo = AppDataSource.getRepository(Organization);
+  private colorIndex = 0;
   async createNode(
     name: string,
-    color: string,
+    color: string | null,
     parentId: string | null,
-    type: NodeType
+    type: NodeType,
+    orgId: string | null // Organization ID for linking node to organization
   ) {
     try {
       const node = new Node();
-      node.nodeid = uuidv4(); // Generate a unique ID for the node
+      node.nodeid = uuidv4();
       node.nodename = name;
-      node.nodeColour = color;
       node.nodetype = type;
 
-      // Handle ORGANIZATION node specifically
-      if (type === NodeType.ORGANIZATION && parentId === null) {
-        node.parentId = null;
-      } else {
-        if (parentId === null) {
-          throw new APIError(
-            ErrorCommonStrings.BAD_INPUT,
-            HttpStatusCode.BAD_REQUEST,
-            false,
-            "Parent id cannot be null"
-          );
+      // Handle Organization node creation (Save in both Organization and Node tables)
+      if (type === NodeType.ORGANIZATION) {
+        // Save in Organization table
+        const organization = new Organization();
+        organization.orgName = name;
+
+        const savedOrganization = await this.organizationRepo.save(
+          organization
+        );
+        logger.info(`Organization created with ID: ${savedOrganization.orgId}`);
+
+        if (color === null) {
+          color = "#FFFFFF";
         }
 
-        const parent = await this.nodeRepo.findOneBy({ nodeid: parentId });
+        // Now save in Node table, linking the organization
+        node.organization = savedOrganization;
+        node.nodename = savedOrganization.orgName; // Use organization name
+        node.nodeid = savedOrganization.orgId; // Use the same ID for the node
+        node.nodeColour = color;
 
+        // Save the node for this organization
+        const savedNode = await this.nodeRepo.save(node);
+        logger.info(`Organization node created with ID: ${savedNode.nodeid}`);
+
+        return savedNode; // Return the node along with the organization
+      }
+
+      // Link node to organization
+      if (orgId) {
+        const organization = await this.organizationRepo.findOneBy({ orgId });
+        if (!organization) {
+          logger.error(`Organization with ID: ${orgId} not found`);
+          throw new APIError(
+            ErrorCommonStrings.NOT_FOUND,
+            HttpStatusCode.NOT_FOUND,
+            false,
+            "Organization not found"
+          );
+        }
+        node.organization = organization;
+      }
+
+      // Assign colors for Location and Department nodes using round-robin from color pool
+      if (type === NodeType.LOCATION || type === NodeType.DEPARTMENTS) {
+        node.nodeColour = colorPool[this.colorIndex];
+        this.colorIndex = (this.colorIndex + 1) % colorPool.length; // Update color index
+      } else {
+        node.nodeColour = "white";
+      }
+
+      // Handle parent-child relationships for non-organization nodes
+      if (parentId !== null) {
+        const parent = await this.nodeRepo.findOneBy({ nodeid: parentId });
         if (!parent) {
+          logger.error(`Parent with ID: ${parentId} not found`);
           throw new APIError(
             ErrorCommonStrings.NOT_FOUND,
             HttpStatusCode.NOT_FOUND,
@@ -48,14 +105,21 @@ export class NodeService {
           );
         }
 
-        logger.info(`Parent found with ID: ${parent.nodeid}`);
+        node.parentId = parentId;
 
-        // Use parentId and newly created nodeId or existing node ID to detect cycle
+        // Propagate color if parent is LOCATION or DEPARTMENTS
+        if (
+          parent.nodetype === NodeType.LOCATION ||
+          parent.nodetype === NodeType.DEPARTMENTS
+        ) {
+          node.nodeColour = parent.nodeColour;
+        }
+
+        // Cycle detection logic remains the same
         const isCycleDetected = await this.cycleDetectionService(
           parentId,
           node.nodeid
         );
-
         if (isCycleDetected) {
           throw new APIError(
             ErrorCommonStrings.NOT_IMPLEMENTED,
@@ -63,18 +127,6 @@ export class NodeService {
             false,
             "Cycle detected"
           );
-        }
-
-        node.parentId = parentId;
-        console.log("parentNodeType", parent.nodetype);
-
-        // Handle color inheritance based on parent's type
-        if (
-          parent.nodetype === NodeType.LOCATION ||
-          parent.nodetype === NodeType.EMPLOYEE ||
-          parent.nodetype === NodeType.DEPARTMENTS
-        ) {
-          node.nodeColour = parent.nodeColour;
         }
       }
 

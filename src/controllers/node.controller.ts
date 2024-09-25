@@ -26,7 +26,8 @@ export class NodeController {
         name,
         color,
         null,
-        NodeType.ORGANIZATION
+        NodeType.ORGANIZATION,
+        null
       );
       return res.status(HttpStatusCode.CREATED).json(node);
     } catch (error) {
@@ -46,17 +47,11 @@ export class NodeController {
   }
 
   async createLocation(req: Request, res: Response) {
-    const { name, color, parentId } = req.body;
+    const { name, color, parentId, orgId } = req.body;
 
     if (!name || name.trim() == "" || typeof name !== "string") {
       return res.status(HttpStatusCode.BAD_REQUEST).json({
         message: "Missing body, Please provide the name",
-      });
-    }
-
-    if (!color || color.trim() == "" || typeof color !== "string") {
-      return res.status(HttpStatusCode.BAD_REQUEST).json({
-        message: "Missing body, Please provide the color",
       });
     }
     if (!parentId || parentId.trim() == "" || typeof parentId !== "string") {
@@ -64,12 +59,18 @@ export class NodeController {
         message: "Missing body, Please provide the parentId",
       });
     }
+    if (!orgId || orgId.trim() === "" || typeof orgId !== "string") {
+      return res.status(HttpStatusCode.BAD_REQUEST).json({
+        message: "Missing body, Please provide the organization ID",
+      });
+    }
     try {
       const node = await nodeService.createNode(
         name,
         color,
         parentId,
-        NodeType.LOCATION
+        NodeType.LOCATION,
+        orgId
       );
       return res.status(HttpStatusCode.CREATED).json(node);
     } catch (error) {
@@ -89,17 +90,11 @@ export class NodeController {
   }
 
   async createEmployee(req: Request, res: Response) {
-    const { name, color, parentId } = req.body;
+    const { name, color, parentId, orgId } = req.body;
 
     if (!name || name.trim() == "" || typeof name !== "string") {
       return res.status(HttpStatusCode.BAD_REQUEST).json({
         message: "Missing body, Please provide the name",
-      });
-    }
-
-    if (!color || color.trim() == "" || typeof color !== "string") {
-      return res.status(HttpStatusCode.BAD_REQUEST).json({
-        message: "Missing body, Please provide the color",
       });
     }
     if (!parentId || parentId.trim() == "" || typeof parentId !== "string") {
@@ -107,12 +102,19 @@ export class NodeController {
         message: "Missing body, Please provide the parentId",
       });
     }
+
+    if (!orgId || orgId.trim() === "" || typeof orgId !== "string") {
+      return res.status(HttpStatusCode.BAD_REQUEST).json({
+        message: "Missing body, Please provide the organization ID",
+      });
+    }
     try {
       const node = await nodeService.createNode(
         name,
         color,
         parentId,
-        NodeType.EMPLOYEE
+        NodeType.EMPLOYEE,
+        orgId
       );
       return res.status(HttpStatusCode.CREATED).json(node);
     } catch (error) {
@@ -132,17 +134,11 @@ export class NodeController {
   }
 
   async createDepartment(req: Request, res: Response) {
-    const { name, color, parentId } = req.body;
+    const { name, color, parentId, orgId } = req.body;
 
     if (!name || name.trim() == "" || typeof name !== "string") {
       return res.status(HttpStatusCode.BAD_REQUEST).json({
         message: "Missing body, Please provide the name",
-      });
-    }
-
-    if (!color || color.trim() == "" || typeof color !== "string") {
-      return res.status(HttpStatusCode.BAD_REQUEST).json({
-        message: "Missing body, Please provide the color",
       });
     }
     if (!parentId || parentId.trim() == "" || typeof parentId !== "string") {
@@ -150,12 +146,18 @@ export class NodeController {
         message: "Missing body, Please provide the parentId",
       });
     }
+    if (!orgId || orgId.trim() === "" || typeof orgId !== "string") {
+      return res.status(HttpStatusCode.BAD_REQUEST).json({
+        message: "Missing body, Please provide the organization ID",
+      });
+    }
     try {
       const node = await nodeService.createNode(
         name,
         color,
         parentId,
-        NodeType.DEPARTMENTS
+        NodeType.DEPARTMENTS,
+        orgId
       );
       return res.status(HttpStatusCode.CREATED).json(node);
     } catch (error) {
@@ -214,11 +216,9 @@ export class NodeController {
     const deleteChildren = deleteAllChildren === "true";
     try {
       const deleteNode = await nodeService.deleteNode(id, deleteChildren);
-      return res
-        .status(HttpStatusCode.OK)
-        .json({
-          message: `Node deletion ${deleteNode ? "success" : "failed"}`,
-        });
+      return res.status(HttpStatusCode.OK).json({
+        message: `Node deletion ${deleteNode ? "success" : "failed"}`,
+      });
     } catch (error) {
       logger.error("Error deleting node", error);
       if (error instanceof APIError) {
