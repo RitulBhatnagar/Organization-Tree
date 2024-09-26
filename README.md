@@ -1,4 +1,4 @@
-# NodeController API Documentation
+# Organization_Tree API Documentation
 
 This NodeController API allows for creating and managing an organization hierarchy, including organizations, locations, employees, and departments. It provides various operations to manage the organization tree structure.
 
