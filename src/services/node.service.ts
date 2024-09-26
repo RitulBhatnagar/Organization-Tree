@@ -262,6 +262,19 @@ export class NodeService {
           return node;
         }
       }
+
+      // adding check that the node doesn't create the cycle
+      let isCycleDetected = false;
+
+      isCycleDetected = await this.cycleDetectionService(parentId, node.nodeid);
+      if (isCycleDetected) {
+        throw new APIError(
+          ErrorCommonStrings.NOT_IMPLEMENTED,
+          HttpStatusCode.NOT_IMPLEMENTED,
+          false,
+          "Cycle detected"
+        );
+      }
       // if not then first check that the given parent id exsist in the organization tree or not
 
       const parent = await this.nodeRepo.findOneBy({ nodeid: parentId });
