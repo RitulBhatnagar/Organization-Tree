@@ -8,23 +8,16 @@ import logger from "../utils/logger";
 const nodeService = new NodeService();
 export class NodeController {
   async createOrganization(req: Request, res: Response) {
-    const { name, color } = req.body;
+    const { name } = req.body;
     if (!name || name.trim() == "" || typeof name !== "string") {
       return res.status(HttpStatusCode.BAD_REQUEST).json({
         message: "Missing body, Please provide the name",
       });
     }
 
-    if (!color || color.trim() == "" || typeof color !== "string") {
-      return res.status(HttpStatusCode.BAD_REQUEST).json({
-        message: "Missing body, Please provide the color",
-      });
-    }
-
     try {
       const node = await nodeService.createNode(
         name,
-        color,
         null,
         NodeType.ORGANIZATION,
         null
@@ -47,7 +40,7 @@ export class NodeController {
   }
 
   async createLocation(req: Request, res: Response) {
-    const { name, color, parentId, orgId } = req.body;
+    const { name, parentId, orgId } = req.body;
 
     if (!name || name.trim() == "" || typeof name !== "string") {
       return res.status(HttpStatusCode.BAD_REQUEST).json({
@@ -67,7 +60,6 @@ export class NodeController {
     try {
       const node = await nodeService.createNode(
         name,
-        color,
         parentId,
         NodeType.LOCATION,
         orgId
@@ -90,7 +82,7 @@ export class NodeController {
   }
 
   async createEmployee(req: Request, res: Response) {
-    const { name, color, parentId, orgId } = req.body;
+    const { name, parentId, orgId } = req.body;
 
     if (!name || name.trim() == "" || typeof name !== "string") {
       return res.status(HttpStatusCode.BAD_REQUEST).json({
@@ -111,7 +103,6 @@ export class NodeController {
     try {
       const node = await nodeService.createNode(
         name,
-        color,
         parentId,
         NodeType.EMPLOYEE,
         orgId
@@ -134,7 +125,7 @@ export class NodeController {
   }
 
   async createDepartment(req: Request, res: Response) {
-    const { name, color, parentId, orgId } = req.body;
+    const { name, parentId, orgId } = req.body;
 
     if (!name || name.trim() == "" || typeof name !== "string") {
       return res.status(HttpStatusCode.BAD_REQUEST).json({
@@ -154,7 +145,6 @@ export class NodeController {
     try {
       const node = await nodeService.createNode(
         name,
-        color,
         parentId,
         NodeType.DEPARTMENTS,
         orgId

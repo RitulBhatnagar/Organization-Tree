@@ -7,7 +7,7 @@
     "start": "node dist/index",
     "dev": "tsc-watch --onSuccess \"node ./dist/index.js\"",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "tsc -p . && npm run sentry:sourcemaps"
+    "build": "tsc"
   },
   "keywords": [],
   "author": "",

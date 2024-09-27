@@ -10,6 +10,9 @@ export class Organization {
   @Column({ type: "varchar", unique: true })
   orgName!: string;
 
+  @Column({ type: "boolean", default: true })
+  isActive!: boolean;
+
   @OneToMany(() => Node, (node) => node.organization)
   nodes!: Node[];
 }

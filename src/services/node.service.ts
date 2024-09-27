@@ -6,6 +6,7 @@ import APIError, { HttpStatusCode } from "../middleware/errorMiddlware";
 import { ErrorCommonStrings } from "../utils/constant";
 import logger from "../utils/logger";
 import { v4 as uuidv4 } from "uuid";
+import { In } from "typeorm";
 
 interface TreeNode extends Node {
   children?: TreeNode[]; // Add children property
@@ -30,7 +31,6 @@ export class NodeService {
   private colorIndex = 0;
   async createNode(
     name: string,
-    color: string | null,
     parentId: string | null,
     type: NodeType,
     orgId: string | null // Organization ID for linking node to organization
@@ -52,15 +52,13 @@ export class NodeService {
         );
         logger.info(`Organization created with ID: ${savedOrganization.orgId}`);
 
-        if (color === null) {
-          color = "#FFFFFF";
-        }
+        node.nodeColour = colorPool[this.colorIndex];
+        this.colorIndex = (this.colorIndex + 1) % colorPool.length;
 
         // Now save in Node table, linking the organization
         node.organization = savedOrganization;
         node.nodename = savedOrganization.orgName; // Use organization name
         node.nodeid = savedOrganization.orgId; // Use the same ID for the node
-        node.nodeColour = color;
 
         // Save the node for this organization
         const savedNode = await this.nodeRepo.save(node);
@@ -109,8 +107,10 @@ export class NodeService {
 
         // Propagate color if parent is LOCATION or DEPARTMENTS
         if (
-          parent.nodetype === NodeType.LOCATION ||
-          parent.nodetype === NodeType.DEPARTMENTS
+          (parent.nodetype === NodeType.LOCATION ||
+            parent.nodetype === NodeType.DEPARTMENTS) &&
+          node.nodetype !== NodeType.LOCATION &&
+          node.nodetype !== NodeType.DEPARTMENTS
         ) {
           node.nodeColour = parent.nodeColour;
         }
@@ -460,36 +460,48 @@ export class NodeService {
     parentId: string,
     nodeId: string
   ): Promise<boolean> {
+    const visitedNodes = new Set<string>();
     let currentParentId: string | null = parentId;
+    let parentMap: Map<string, string | null> | null = null;
 
-    logger.info(
-      `Checking cycle: currentParentId = ${currentParentId}, nodeId = ${nodeId}`
-    );
+    try {
+      logger.info(
+        `Checking cycle: initial parentId = ${parentId}, nodeId = ${nodeId}`
+      );
 
-    // Immediate parent-child cycle detection
-    if (currentParentId === nodeId) {
-      logger.info("Cycle detected at direct relationship level.");
-      return true;
-    }
+      while (currentParentId !== null) {
+        if (visitedNodes.has(currentParentId)) {
+          logger.info("Cycle detected: node already visited.");
+          return true;
+        }
 
-    // Traverse upward through the hierarchy
-    while (currentParentId !== null) {
-      if (currentParentId === nodeId) {
-        logger.info("Cycle detected during traversal.");
-        return true; // Cycle detected
+        if (currentParentId === nodeId) {
+          logger.info("Cycle detected: current parent matches target node.");
+          return true;
+        }
+
+        visitedNodes.add(currentParentId);
+
+        const parentNodes = await this.nodeRepo.find({
+          where: { nodeid: In([...visitedNodes]) },
+          select: ["nodeid", "parentId"],
+        });
+
+        parentMap = new Map(
+          parentNodes.map((node) => [node.nodeid, node.parentId])
+        );
+
+        currentParentId = parentMap.get(currentParentId) || null;
       }
 
-      const parentNode = await this.nodeRepo.findOne({
-        where: { nodeid: currentParentId },
-        select: ["parentId"],
-      });
-
-      // If no parent is found, stop traversal
-      if (!parentNode) break;
-
-      currentParentId = parentNode.parentId;
+      return false;
+    } finally {
+      // Cleanup
+      visitedNodes.clear();
+      if (parentMap) {
+        parentMap.clear();
+      }
+      logger.info("Cleaned up visitedNodes and parentMap");
     }
-
-    return false;
   }
 }

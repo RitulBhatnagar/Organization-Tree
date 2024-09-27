@@ -2,7 +2,6 @@ import { DataSource } from "typeorm";
 import { ENV } from "./env";
 import { Node } from "../entities/node/nodeEntity";
 import { Organization } from "../entities/organization/organizationEntity";
-
 export const AppDataSource = new DataSource({
   type: "mysql",
   host: ENV.DB_HOST,
@@ -10,11 +9,11 @@ export const AppDataSource = new DataSource({
   username: ENV.DB_USERNAME,
   password: ENV.DB_PASSWORD,
   database: ENV.DB_DATABASE,
-  synchronize: true,
-  logging: false,
+  synchronize: false,
+  logging: true,
   entities: [Node, Organization],
-  migrations: ["src/migrations/*.ts"],
-  subscribers: ["src/subscribers/*.ts"],
+  migrations: ["../src/migrations/*.ts"],
+  subscribers: [],
   ssl: {
     rejectUnauthorized: false,
   },
