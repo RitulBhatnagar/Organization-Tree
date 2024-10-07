@@ -26,6 +26,9 @@ export class User extends BaseModel {
   @Column({ length: 100, unique: true })
   email!: string;
 
+  @Column({ length: 100 })
+  password!: string;
+
   @ManyToMany(() => Role, (role) => role.users)
   @JoinTable()
   roles!: Role[];

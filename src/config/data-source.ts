@@ -7,9 +7,7 @@ import { User } from "../entities/user/userEntity";
 import { Role } from "../entities/Role/roleEntity";
 import { Team } from "../entities/Team/teamEntity";
 import { ContactPerson } from "../entities/ContactPerson/contactPersonEntity";
-import { MinimalUser } from "../entities/Minimal/minimalUserEntity";
 
-console.log(ENV.DB_DATABASE);
 export const AppDataSource = new DataSource({
   type: "mysql",
   host: ENV.DB_HOST,
@@ -18,11 +16,15 @@ export const AppDataSource = new DataSource({
   password: ENV.DB_PASSWORD,
   database: ENV.DB_DATABASE,
   synchronize: false,
-  logging: true,
+  logging: false,
   entities: [Node, Organization, User, Role, Team, Brand, ContactPerson],
   migrations: [__dirname + "/../migrations/*.ts"],
   subscribers: [],
   ssl: {
     rejectUnauthorized: false,
+  },
+  extra: {
+    connnectionLimit: ENV.NODE_ENV === "prod" ? 10 : 2,
+    queueLimit: 0,
   },
 });

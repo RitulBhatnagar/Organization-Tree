@@ -1,9 +1,9 @@
 import { Request, Response, NextFunction } from "express";
-import { NodeService } from "../services/node.service";
-import APIError, { HttpStatusCode } from "../middleware/errorMiddlware";
-import { localConstant } from "../utils/constant";
-import { NodeType } from "../entities/node/nodeEntity";
-import logger from "../utils/logger";
+import { NodeService } from "../../services/v1/node.service";
+import APIError, { HttpStatusCode } from "../../middleware/errorMiddlware";
+import { localConstant } from "../../utils/constant";
+import { NodeType } from "../../entities/node/nodeEntity";
+import logger from "../../utils/logger";
 
 const nodeService = new NodeService();
 export class NodeController {
