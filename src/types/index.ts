@@ -19,3 +19,7 @@ export interface TeammateDTO {
   email: string;
   department: string | null;
 }
+export interface PaginationParams {
+  page?: number;
+  limit?: number;
+}

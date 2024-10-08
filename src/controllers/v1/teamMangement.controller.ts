@@ -8,17 +8,20 @@ const teamManagementService = new TeamMangementService();
 export class TeamMangementController {
   async getTeamMembers(req: Request, res: Response) {
     const { teamId } = req.params;
-    const { page, limit, sortBy, sortOrder } = req.query;
+    const page = req.query.page ? parseInt(req.query.page as string, 10) : 1;
+    const limit = req.query.limit
+      ? parseInt(req.query.limit as string, 10)
+      : 10;
     try {
-      const paginationQuery = {
-        page: page ? Number(page) : undefined,
-        limit: limit ? Number(limit) : undefined,
-        sortBy: sortBy as string | undefined,
-        sortOrder: sortOrder as "ASC" | "DESC" | undefined,
-      };
       const teamMembers =
-        await teamManagementService.getHierarchicalTeamStructure(teamId);
-      return res.status(200).json(teamMembers);
+        await teamManagementService.getHierarchicalTeamStructure(teamId, {
+          page,
+          limit,
+        });
+      return res.status(200).json({
+        message: "Team members retrieved successfully",
+        ...teamMembers,
+      });
     } catch (error) {
       logger.error("Error while getting team members", error);
 

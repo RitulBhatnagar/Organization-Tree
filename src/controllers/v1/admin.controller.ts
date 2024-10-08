@@ -276,8 +276,10 @@ export class AdminController {
     }
   }
   async getBrandWithOwners(req: Request, res: Response) {
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
     try {
-      const brand = await adminService.getBrandswithOwners();
+      const brand = await adminService.getBrandswithOwners({ page, limit });
       return res.status(HttpStatusCode.OK).json({
         message: "Brand with owners retrieved successfully",
         brand: brand,
@@ -303,8 +305,14 @@ export class AdminController {
       });
     }
 
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
+
     try {
-      const userHierarchy = await adminService.getHirechry(userId);
+      const userHierarchy = await adminService.getHirechry(userId, {
+        page,
+        limit,
+      });
       return res.status(HttpStatusCode.OK).json({
         message: "User hierarchy retrieved successfully",
         user: userHierarchy,

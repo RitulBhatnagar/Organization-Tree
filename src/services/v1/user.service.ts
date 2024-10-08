@@ -6,7 +6,7 @@ import APIError, { HttpStatusCode } from "../../middleware/errorMiddlware";
 import { ErrorCommonStrings } from "../../utils/constant";
 import logger from "../../utils/logger";
 import { SimplifiedUserDTO } from "../../dtos/simplifieduserdto";
-import { TeammateDTO } from "../../types";
+import { PaginationParams, TeammateDTO } from "../../types";
 export class UserService {
   private userRepo = AppDataSource.getRepository(User);
   private userToTeammateDTO(user: User): TeammateDTO {
@@ -47,13 +47,31 @@ export class UserService {
       );
     }
   }
-  async searchUser(name: string) {
+  async searchUser(name: string, paginationParams: PaginationParams) {
     try {
-      const users = await this.userRepo.find({
+      const { page = 1, limit = 10 } = paginationParams;
+      const skip = (page - 1) * limit;
+
+      const [users, total] = await this.userRepo.findAndCount({
         where: { name: Like(`%${name}%`) },
         relations: ["roles"],
+        skip,
+        take: limit,
       });
-      return users.map((user) => SimplifiedUserDTO.fromEntity(user));
+
+      const userresult = users.map((user) =>
+        SimplifiedUserDTO.fromEntity(user)
+      );
+
+      return {
+        data: userresult,
+        meta: {
+          total,
+          page,
+          limit,
+          totalPages: Math.ceil(total / limit),
+        },
+      };
     } catch (error) {
       logger.error("Error while searching for users", error);
       if (error instanceof APIError) {
@@ -67,9 +85,13 @@ export class UserService {
       );
     }
   }
-  async getTeammates(userId: string): Promise<TeammateDTO[]> {
+  async getTeammates(userId: string, paginationParams: PaginationParams) {
     try {
       logger.info(`Fetching teammates for userId: ${userId}`);
+
+      const { page = 1, limit = 10 } = paginationParams;
+
+      const skip = (page - 1) * limit;
 
       const user = await this.userRepo.findOne({
         where: { userId },
@@ -116,9 +138,20 @@ export class UserService {
         }
       }
 
+      const total = teammates.length;
+      const paginatedResult = teammates.slice(skip, skip + limit);
+
       logger.debug(`Found ${teammates.length} teammates for user ${userId}`);
 
-      return teammates;
+      return {
+        data: paginatedResult,
+        meta: {
+          total,
+          page,
+          limit,
+          totalPages: Math.ceil(total / limit),
+        },
+      };
     } catch (error) {
       logger.error("Error while fetching teammates", error);
       if (error instanceof APIError) {

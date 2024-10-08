@@ -17,8 +17,13 @@ export class UserController {
   }
   async searchUser(req: Request, res: Response) {
     const { name } = req.query;
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
     try {
-      const users = await userService.searchUser(name as string);
+      const users = await userService.searchUser(name as string, {
+        page,
+        limit,
+      });
       return res.status(200).json(users);
     } catch (error) {
       logger.error("Error while searching users", error);
@@ -28,8 +33,13 @@ export class UserController {
 
   async getTeammates(req: Request, res: Response) {
     const { userId } = req.params;
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
     try {
-      const teamMembers = await userService.getTeammates(userId);
+      const teamMembers = await userService.getTeammates(userId, {
+        page,
+        limit,
+      });
       return res.status(200).json(teamMembers);
     } catch (error) {
       logger.error("Error while getting team members", error);

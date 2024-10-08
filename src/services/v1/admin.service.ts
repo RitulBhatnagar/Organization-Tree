@@ -8,11 +8,16 @@ import { AppDataSource } from "../../config/data-source";
 import APIError, { HttpStatusCode } from "../../middleware/errorMiddlware";
 import { ErrorCommonStrings } from "../../utils/constant";
 import { UserRole } from "../../entities/Role/roleEntity";
-import { LimitedUserData, SimplifiedBrand } from "../../types";
+import {
+  LimitedUserData,
+  PaginationParams,
+  SimplifiedBrand,
+} from "../../types";
 import { UserDTO } from "../../dtos/userdto";
 import { TeamDTO } from "../../dtos/teamdto";
 import { HierarchyDTO } from "../../dtos/hirerachydto";
 import { BrandDTO } from "../../dtos/brandDto";
+import { link } from "fs";
 export class AdminService {
   private userRepo = AppDataSource.getRepository(User);
   private roleRepo = AppDataSource.getRepository(Role);
@@ -426,10 +431,14 @@ export class AdminService {
     }
   }
 
-  async getBrandswithOwners() {
+  async getBrandswithOwners(paginationParams: PaginationParams) {
     try {
-      const brands = await this.brandRepo.find({
-        relations: ["owners"],
+      const { page = 1, limit = 10 } = paginationParams;
+      const skip = (page - 1) * limit;
+      const [brands, total] = await this.brandRepo.findAndCount({
+        relations: ["owners", "contactPersons"],
+        skip,
+        take: limit,
       });
       if (!brands) {
         throw new APIError(
@@ -439,7 +448,16 @@ export class AdminService {
           "Brand not found"
         );
       }
-      return brands.map((brand) => BrandDTO.fromEntity(brand));
+      const brandsDto = brands.map((brand) => BrandDTO.fromEntity(brand));
+      return {
+        data: brandsDto,
+        meta: {
+          total,
+          page,
+          limit,
+          totalPages: Math.ceil(total / limit),
+        },
+      };
     } catch (error) {
       if (error instanceof APIError) {
         throw error;
@@ -453,8 +471,11 @@ export class AdminService {
     }
   }
 
-  async getHirechry(userId: string) {
+  async getHirechry(userId: string, paginationParams: PaginationParams) {
     try {
+      const { page = 1, limit = 10 } = paginationParams;
+      const skip = (page - 1) * limit;
+
       const user = await this.userRepo.findOne({
         where: { userId },
         relations: ["subordinates"],
@@ -467,7 +488,29 @@ export class AdminService {
           "User not found"
         );
       }
-      return HierarchyDTO.fromEntity(user);
+      const totalSubordinates = user.subordinates.length;
+      const paginatedSubordinates = user.subordinates.slice(skip, skip + limit);
+      const subordinatesHireacrhies = await Promise.all(
+        paginatedSubordinates.map(async (subordinate) => {
+          const fullSubordinate = await this.userRepo.findOne({
+            where: { userId: subordinate.userId },
+            relations: ["subordinates"],
+          });
+          return HierarchyDTO.fromEntity(fullSubordinate);
+        })
+      );
+
+      const userHierarchy = HierarchyDTO.fromEntity(user);
+      userHierarchy.subordinates = subordinatesHireacrhies;
+      return {
+        data: [userHierarchy],
+        meta: {
+          total: totalSubordinates,
+          page,
+          limit,
+          totalPages: Math.ceil(totalSubordinates / limit),
+        },
+      };
     } catch (error) {
       if (error instanceof APIError) {
         throw error;
