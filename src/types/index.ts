@@ -1,3 +1,5 @@
+import { CompletedStatusEnum, TaskTypeEnum } from "../entities/Task/taskEntity";
+
 export interface contactPerson {
   name: string;
   phone: string;
@@ -22,4 +24,22 @@ export interface TeammateDTO {
 export interface PaginationParams {
   page?: number;
   limit?: number;
+}
+
+export interface taskFilters {
+  taskType?: TaskTypeEnum;
+  assignedBy?: string;
+  assignedTo?: string;
+  teamOwnerId?: string;
+  dueDatePassed?: boolean;
+  brandName?: string;
+  inventoryName?: string;
+  completedStatus?: CompletedStatusEnum;
+  eventName?: string;
+  sortBy?: string;
+  sortOrder?: "ASC" | "DESC";
+}
+
+export interface StorageService {
+  uploadFile(file: Express.Multer.File): Promise<string>;
 }

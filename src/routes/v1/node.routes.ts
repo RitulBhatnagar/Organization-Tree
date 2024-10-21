@@ -30,7 +30,7 @@ const nodeController = new NodeController();
  *       400:
  *         description: Bad request due to missing name or color.
  */
-router.post("/organization", nodeController.createOrganization);
+router.post("/node/organization", nodeController.createOrganization);
 
 /**
  * @openapi
@@ -63,7 +63,7 @@ router.post("/organization", nodeController.createOrganization);
  *       400:
  *         description: Bad request due to missing required fields.
  */
-router.post("/department", nodeController.createDepartment);
+router.post("/node/department", nodeController.createDepartment);
 
 /**
  * @openapi
@@ -96,7 +96,7 @@ router.post("/department", nodeController.createDepartment);
  *       400:
  *         description: Bad request due to missing required fields.
  */
-router.post("/location", nodeController.createLocation);
+router.post("/node/location", nodeController.createLocation);
 
 /**
  * @openapi
@@ -129,7 +129,7 @@ router.post("/location", nodeController.createLocation);
  *       400:
  *         description: Bad request due to missing required fields.
  */
-router.post("/employee", nodeController.createEmployee);
+router.post("/node/employee", nodeController.createEmployee);
 
 /**
  * @openapi
@@ -150,7 +150,7 @@ router.post("/employee", nodeController.createEmployee);
  *       400:
  *         description: Bad request due to missing ID.
  */
-router.get("/:id", nodeController.getTree);
+router.get("/node/:id", nodeController.getTree);
 
 /**
  * @openapi
@@ -184,7 +184,7 @@ router.get("/:id", nodeController.getTree);
  *       400:
  *         description: Bad request due to missing ID or fields.
  */
-router.patch("/:id", nodeController.updateNode);
+router.patch("/node/:id", nodeController.updateNode);
 
 /**
  * @openapi
@@ -205,6 +205,6 @@ router.patch("/:id", nodeController.updateNode);
  *       400:
  *         description: Bad request due to missing ID.
  */
-router.delete("/:id", nodeController.deleteNode);
+router.delete("/node/:id", nodeController.deleteNode);
 
 export default router;

@@ -4,3 +4,8 @@ export * from "./v1/node.controller";
 export * from "./v1/teamMangement.controller";
 export * from "./v1/user.controller";
 export * from "./v1/userLogin.controller";
+export * from "./v1/comment.controller";
+export * from "./v1/task.controller";
+export * from "./v1/taskHistory.controller";
+export * from "./v1/taskAnalytics.controller";
+export * from "./v1/notifcation.controller";

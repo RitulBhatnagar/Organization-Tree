@@ -8,6 +8,7 @@ import {
   HierarchicalUserDTO,
 } from "../../dtos/hirerachyTeamdto";
 import { PaginationParams } from "../../types";
+import { TeamDTO } from "../../dtos/teamdto";
 
 export class TeamMangementService {
   async getHierarchicalTeamStructure(
@@ -68,6 +69,35 @@ export class TeamMangementService {
         HttpStatusCode.INTERNAL_SERVER_ERROR,
         false,
         "Error while getting hierarchical team structure"
+      );
+    }
+  }
+
+  async getTeam(teamId: string) {
+    try {
+      const team = await Team.findOne({
+        where: { teamId },
+        relations: ["teamOwner", "members"],
+      });
+      if (!team) {
+        throw new APIError(
+          ErrorCommonStrings.NOT_FOUND,
+          HttpStatusCode.NOT_FOUND,
+          false,
+          "Team not found"
+        );
+      }
+      return TeamDTO.fromEntity(team);
+    } catch (error) {
+      logger.error("Error while fetching the team", error);
+      if (error instanceof APIError) {
+        throw error;
+      }
+      throw new APIError(
+        ErrorCommonStrings.INTERNAL_SERVER_ERROR,
+        HttpStatusCode.INTERNAL_SERVER_ERROR,
+        false,
+        "Error while getting team"
       );
     }
   }

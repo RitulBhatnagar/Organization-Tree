@@ -5,6 +5,7 @@ export enum UserRole {
   ADMIN = "ADMIN",
   PO = "PO",
   BO = "BO",
+  MO = "MO",
   TO = "TO",
   PO_TO = "PO+TO",
 }

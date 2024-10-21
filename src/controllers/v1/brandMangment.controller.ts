@@ -1,15 +1,17 @@
 import { Request, Response } from "express";
 import APIError, { HttpStatusCode } from "../../middleware/errorMiddlware";
 import { BrandManagementService } from "../../services/v1/brandMangment.service";
-import { localConstant } from "../../utils/constant";
+import { ErrorCommonStrings, localConstant } from "../../utils/constant";
 import { UserRole } from "../../entities/Role/roleEntity";
 import logger from "../../utils/logger";
+import { access } from "fs/promises";
 
 const brandService = new BrandManagementService();
 
 export class BrandMangmentController {
   async updateBrands(req: Request, res: Response) {
     const { brandId } = req.params;
+    const accessLevel = req.user?.accessLevel;
     const { brandName, revenue, dealCloseValue } = req.body;
 
     if (!brandId || brandId.trim() === "" || typeof brandId !== "string") {
@@ -35,16 +37,25 @@ export class BrandMangmentController {
       return res.status(HttpStatusCode.BAD_REQUEST).json({});
     }
     try {
-      const updateBrand = await brandService.updateBrand(
-        brandId,
-        brandName,
-        revenue,
-        dealCloseValue
-      );
-      return res.status(200).json({
-        message: "Brand got upddated",
-        brand: updateBrand,
-      });
+      if (accessLevel === "full") {
+        const updateBrand = await brandService.updateBrand(
+          brandId,
+          brandName,
+          revenue,
+          dealCloseValue
+        );
+        return res.status(200).json({
+          message: "Brand got upddated",
+          brand: updateBrand,
+        });
+      } else {
+        throw new APIError(
+          ErrorCommonStrings.UNAUTHORIZED_REQUEST,
+          HttpStatusCode.UNAUTHORIZED,
+          false,
+          "You are not authorized to update this brand"
+        );
+      }
     } catch (error) {
       logger.error("Error while getting brand with owners", error);
       if (error instanceof APIError) {
@@ -61,6 +72,7 @@ export class BrandMangmentController {
   async addContactPerson(req: Request, res: Response) {
     const { brandId } = req.params;
     const contactPersonData = req.body;
+    const accessLevel = req.user?.accessLevel;
     if (!brandId || brandId.trim() === "" || typeof brandId !== "string") {
       return res.status(HttpStatusCode.BAD_REQUEST).json({
         message: "Missing or invalid brandId in params",
@@ -72,11 +84,20 @@ export class BrandMangmentController {
       });
     }
     try {
-      const addContactPerson = await brandService.addContactPerson(
-        brandId,
-        contactPersonData
+      if (accessLevel === "full") {
+        const addContactPerson = await brandService.addContactPerson(
+          brandId,
+          contactPersonData
+        );
+        return res.status(201).json(addContactPerson);
+      }
+
+      throw new APIError(
+        ErrorCommonStrings.UNAUTHORIZED_REQUEST,
+        HttpStatusCode.UNAUTHORIZED,
+        false,
+        "You are not authorized to add contact person to this brand"
       );
-      return res.status(201).json(addContactPerson);
     } catch (error) {
       logger.error("Error while adding contact person", error);
       if (error instanceof APIError) {
@@ -92,6 +113,7 @@ export class BrandMangmentController {
 
   async updateContactPerson(req: Request, res: Response) {
     const { brandId, contactId } = req.params;
+    const accessLevel = req.user?.accessLevel;
     const updateData = req.body;
     if (!brandId || brandId.trim() === "" || typeof brandId !== "string") {
       return res.status(HttpStatusCode.BAD_REQUEST).json({
@@ -113,15 +135,21 @@ export class BrandMangmentController {
       });
     }
     try {
-      const updateContactPerson = await brandService.updateContactPerson(
-        brandId,
-        contactId,
-        updateData
+      if (accessLevel === "full") {
+        const updateContactPerson = await brandService.updateContactPerson(
+          brandId,
+          contactId,
+          updateData
+        );
+        return res.status(200).json(updateContactPerson);
+      }
+
+      throw new APIError(
+        ErrorCommonStrings.UNAUTHORIZED_REQUEST,
+        HttpStatusCode.UNAUTHORIZED,
+        false,
+        "You are not authorized to update contact person"
       );
-      return res.status(200).json({
-        message: "Update the contact person",
-        contactPerson: updateContactPerson,
-      });
     } catch (error) {
       logger.error("Error while updating contact person", error);
       if (error instanceof APIError) {
@@ -139,14 +167,23 @@ export class BrandMangmentController {
   }
   async getBrandsList(req: Request, res: Response) {
     const { userId } = req.params;
+    const accessLevel = req.user?.accessLevel;
     if (!userId || userId.trim() === "" || typeof userId !== "string") {
       return res.status(HttpStatusCode.BAD_REQUEST).json({
         message: "Missing or invalid userId in request body",
       });
     }
     try {
-      const brands = await brandService.getBrands(userId);
-      return res.status(200).json(brands);
+      if (accessLevel === "full") {
+        const brands = await brandService.getBrands(userId);
+        return res.status(200).json(brands);
+      }
+      throw new APIError(
+        ErrorCommonStrings.UNAUTHORIZED_REQUEST,
+        HttpStatusCode.UNAUTHORIZED,
+        false,
+        "You are not authorized to get brands list"
+      );
     } catch (error) {
       logger.error("Error while getting brand with owners", error);
       if (error instanceof APIError) {
@@ -161,9 +198,7 @@ export class BrandMangmentController {
   }
   async getBrandDetails(req: Request, res: Response) {
     const { brandId } = req.params;
-    const userRoles: UserRole[] = req.body.user.roles;
-
-    console.log(brandId);
+    const accessLevel = req.user?.accessLevel;
     if (!brandId || brandId.trim() === "" || typeof brandId !== "string") {
       return res.status(HttpStatusCode.BAD_REQUEST).json({
         message: "Missing or invalid userId in request body",
@@ -171,16 +206,10 @@ export class BrandMangmentController {
     }
     try {
       let brandDetails;
-      if (
-        userRoles.some((role) =>
-          [UserRole.ADMIN, UserRole.BO, UserRole.PO_TO, UserRole.PO].includes(
-            role
-          )
-        )
-      ) {
-        brandDetails = await brandService.getFullBrandDetails(brandId);
-      } else if (userRoles.includes(UserRole.TO)) {
+      if (accessLevel === "limited") {
         brandDetails = await brandService.getLimitedBrandDetails(brandId);
+      } else if (accessLevel === "full") {
+        brandDetails = await brandService.getFullBrandDetails(brandId);
       } else {
         throw new APIError(
           "FORBIDDEN",

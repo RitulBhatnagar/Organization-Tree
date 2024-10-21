@@ -14,4 +14,11 @@ router.get(
   teamManagementController.getTeamMembers
 );
 
+router.get(
+  "/teams/:teamId",
+  authenticate,
+  checkRoles([UserRole.ADMIN, UserRole.PO_TO, UserRole.TO, UserRole.PO]),
+  teamManagementController.getTeam
+);
+
 export default router;

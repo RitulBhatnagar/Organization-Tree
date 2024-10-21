@@ -123,7 +123,7 @@ export class AdminService {
         await this.roleRepo.save(role);
       }
 
-      user.roles = [role];
+      user.roles.push(role);
       const canOwnTeam =
         role.roleName === UserRole.TO || role.roleName === UserRole.PO_TO;
 
@@ -326,17 +326,18 @@ export class AdminService {
     await queryRunner.startTransaction();
 
     try {
-      const brand = await this.brandRepo.findOne({
+      const brand = await Brand.findOne({
         where: { brandId },
         relations: ["owners"],
       });
+      console.log(brand);
 
       if (!brand) {
         throw new APIError(
           ErrorCommonStrings.NOT_FOUND,
           HttpStatusCode.NOT_FOUND,
           false,
-          "Brand not found"
+          "Brand not found from service"
         );
       }
 
