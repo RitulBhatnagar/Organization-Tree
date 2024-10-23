@@ -23,8 +23,7 @@ export class Comment extends BaseModel {
   @ManyToOne(() => User, (user) => user.comments)
   user!: User;
 
-  @OneToMany(() => TaskAsset, (taskAsset) => taskAsset.commnet)
-  @JoinTable()
+  @OneToMany(() => TaskAsset, (taskAsset) => taskAsset.comment)
   taskAssets!: TaskAsset[];
 
   @ManyToOne(() => Task, (task) => task.comments)

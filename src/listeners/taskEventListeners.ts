@@ -230,7 +230,7 @@ eventEmitter.on(COMMENT_DELETED, async (task: Task, deleteBy: User) => {
   }
 });
 
-eventEmitter.on("COMMENT_UPDATED", async (task: Task, updatedBy: User) => {
+eventEmitter.on(COMMENT_UPDATED, async (task: Task, updatedBy: User) => {
   logger.info("Comment updated event has been triggered");
 
   try {

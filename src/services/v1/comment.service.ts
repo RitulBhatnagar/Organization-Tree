@@ -93,6 +93,8 @@ export class CommentService {
       comment.user = user;
       comment.message = message;
 
+      const savedComment = await this.commentRepo.save(comment);
+
       // Handle task assets if they exist
       if (taskAssets.length > 0) {
         const savedAssets = await Promise.all(
@@ -100,23 +102,22 @@ export class CommentService {
             const taskAsset = new TaskAsset();
             taskAsset.fileLocation = url;
             taskAsset.fileType = determineFileType(url);
-            taskAsset.commnet = comment; // Corrected property name
+            taskAsset.comment = savedComment; // Corrected property name
             return this.taskAssetRepo.save(taskAsset);
           })
         );
 
-        comment.taskAssets = savedAssets; // Assuming `taskAssets` is a property in Comment
+        savedComment.taskAssets = savedAssets; // Assuming `taskAssets` is a property in Comment
+        await this.commentRepo.save(savedComment);
       }
 
       // Save the comment
       await this.commentRepo.save(comment);
       logger.info(`Comment has been added to task ${task.taskId}`);
-
       // Emit the event after saving the comment
       eventEmitter.emit("COMMENT_ADDED", task, user);
 
-      // return CommentDto.fromEntity(comment);
-      return comment;
+      return CommentDto.fromEntity(comment);
     } catch (error) {
       logger.error("Error while adding comment", error);
 
@@ -143,7 +144,7 @@ export class CommentService {
             taskId: taskId,
           },
         },
-        relations: ["user"],
+        relations: ["user", "taskAssets"],
         select: {
           message: true,
           createdAt: true,
@@ -153,6 +154,14 @@ export class CommentService {
             userId: true,
             name: true,
           },
+          taskAssets: {
+            taskAssetId: true,
+            fileType: true,
+            fileLocation: true,
+          },
+        },
+        order: {
+          createdAt: "DESC",
         },
         take: limit,
         skip: skip,
@@ -225,19 +234,18 @@ export class CommentService {
     commentId: string,
     userId: string,
     message: string,
-    taskAssetsIds: string[] = [] // Default to an empty array
+    newTaskAssets: string[] = [], // URLs of new assets
+    taskAssetsToRemove: string[] = [] // IDs of assets to remove
   ) {
     const s3StorageService = new S3StorageService();
     try {
-      console.log("taskAssetsIds:", taskAssetsIds); // Log taskAssetsIds
-
-      // Ensure taskAssetsIds is an array
-      if (!Array.isArray(taskAssetsIds)) {
+      // Input validation
+      if (!Array.isArray(newTaskAssets) || !Array.isArray(taskAssetsToRemove)) {
         throw new APIError(
           ErrorCommonStrings.BAD_INPUT,
           HttpStatusCode.BAD_REQUEST,
           false,
-          "taskAssetsIds must be an array"
+          "taskAssets and taskAssetsToRemove must be arrays"
         );
       }
 
@@ -268,68 +276,55 @@ export class CommentService {
 
       comment.message = message;
 
-      // Check if taskAssetsIds is not empty
-      if (taskAssetsIds.length > 0) {
-        // Checking the current task assets
-        const currenttaskAssets = comment.taskAssets.map(
-          (taskAsset) => taskAsset.taskAssetId
-        );
+      // Handle asset removal
+      if (taskAssetsToRemove.length > 0) {
+        const assetsToDelete = await this.taskAssetRepo.find({
+          where: {
+            taskAssetId: In(taskAssetsToRemove),
+            comment: { commentId: comment.commentId }, // Ensure assets belong to this comment
+          },
+        });
 
-        // The task asset needs to be removed
-        const taskAssetsToRemove = currenttaskAssets.filter(
-          (taskAsset) => !taskAssetsIds.includes(taskAsset)
-        );
-        const taskAssetsToAdd = taskAssetsIds.filter(
-          (taskAsset) => !currenttaskAssets.includes(taskAsset)
-        );
-
-        if (taskAssetsToRemove.length > 0) {
-          const assetTodelete = await this.taskAssetRepo.find({
-            where: {
-              taskAssetId: In(taskAssetsToRemove),
-            },
-          });
-
-          // DELETE FROM CLOUD STORAGE
+        if (assetsToDelete.length > 0) {
+          // Uncomment if you want to delete from cloud storage
           await Promise.all(
-            assetTodelete.map(async (asset) => {
-              await s3StorageService.deleteFileFromCloudStorage(
-                asset.fileLocation
-              );
-            })
+            assetsToDelete.map((asset) =>
+              s3StorageService.deleteFileFromCloudStorage(asset.fileLocation)
+            )
           );
 
           await this.taskAssetRepo.delete({
             taskAssetId: In(taskAssetsToRemove),
+            comment: { commentId: comment.commentId },
           });
+
           comment.taskAssets = comment.taskAssets.filter(
             (asset) => !taskAssetsToRemove.includes(asset.taskAssetId)
           );
         }
+      }
 
-        if (taskAssetsToAdd.length > 0) {
-          const saveAssets = [];
-
-          for (const url of taskAssetsToAdd) {
-            // Use taskAssetsToAdd here
+      // Handle new assets
+      if (newTaskAssets.length > 0) {
+        const savedAssets = await Promise.all(
+          newTaskAssets.map(async (url) => {
             const taskAsset = new TaskAsset();
             taskAsset.fileLocation = url;
             taskAsset.fileType = determineFileType(url);
-            taskAsset.commnet = comment; // Fix typo from 'commnet' to 'comment'
-            saveAssets.push(await this.taskAssetRepo.save(taskAsset));
-          }
+            taskAsset.comment = comment;
+            return this.taskAssetRepo.save(taskAsset);
+          })
+        );
 
-          comment.taskAssets = [...comment.taskAssets, ...saveAssets];
-        }
+        comment.taskAssets = [...comment.taskAssets, ...savedAssets];
       }
 
       const updatedComment = await this.commentRepo.save(comment);
+      eventEmitter.emit(COMMENT_UPDATED, comment.task, comment.user);
 
-      // Call the event emitter
-      eventEmitter.emit("COMMENT_UPDATED", comment.task, comment.user);
-
-      return updatedComment;
+      return CommentDto.fromEntity(updatedComment);
     } catch (error) {
+      logger.error("Error while updating comment", error);
       if (error instanceof APIError) {
         throw error;
       }
@@ -341,7 +336,6 @@ export class CommentService {
       );
     }
   }
-
   async getComment(commentId: string) {
     try {
       const comment = await this.commentRepo.findOne({

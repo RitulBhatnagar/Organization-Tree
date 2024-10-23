@@ -9,9 +9,6 @@ const commentService = new CommentService();
 
 export class CommentController {
   async addComment(req: Request, res: Response) {
-    console.log("Incoming request body:", req.body);
-    console.log("Uploaded files:", req.files);
-
     const userId = req.user?.userId;
     let taskId: string;
     let message: string;
@@ -55,8 +52,6 @@ export class CommentController {
         );
 
         const uploadResults = await Promise.all(uploadPromise);
-
-        console.log("uploadResult", uploadResults);
         taskAssets = uploadResults;
       }
 
@@ -165,13 +160,24 @@ export class CommentController {
   }
 
   async updateComment(req: Request, res: Response) {
-    const { commentId } = req.params;
     const userId = req.user?.userId;
-    const { message, taskAssetsIds } = req.body; // taskAssetsIds is now optional
-    const files = req.files as Express.Multer.File[]; // Assuming you're using multer for file uploads
-    const storageService = StorageServiceFactory.createStorageService();
+    const { commentId } = req.params;
+    let message: string;
+    let taskAssetsToRemove: string[] = [];
 
-    // Check for missing or invalid parameters
+    try {
+      const parsedData = JSON.parse(req.body.data);
+      message = parsedData.message;
+      taskAssetsToRemove = Array.isArray(parsedData.taskAssetsToRemove)
+        ? parsedData.taskAssetsToRemove
+        : [];
+    } catch (error) {
+      return res
+        .status(HttpStatusCode.BAD_REQUEST)
+        .json({ message: "Invalid JSON in data field" });
+    }
+
+    // Validation checks
     if (!commentId || typeof commentId !== "string") {
       return res
         .status(HttpStatusCode.BAD_REQUEST)
@@ -190,39 +196,29 @@ export class CommentController {
         .json({ message: "Invalid or missing message" });
     }
 
-    // Log taskAssetsIds to see its value
-    console.log("taskAssetsIds:", taskAssetsIds);
-
-    // Ensure taskAssetsIds is either undefined or an array
-    if (taskAssetsIds !== undefined && !Array.isArray(taskAssetsIds)) {
-      return res
-        .status(HttpStatusCode.BAD_REQUEST)
-        .json({ message: "taskAssetsIds must be an array if provided" });
-    }
-
     try {
-      // Upload files to storage
-      let taskAssets: string[] = [];
+      // Handle file uploads
+      const files = req.files as Express.Multer.File[];
+      const storageService = StorageServiceFactory.createStorageService();
+      let newTaskAssets: string[] = [];
+
       if (files && files.length > 0) {
         const uploadPromises = files.map((file) =>
           storageService.uploadFile(file)
         );
-        const uploadResults = await Promise.all(uploadPromises);
-
-        taskAssets = uploadResults;
+        newTaskAssets = await Promise.all(uploadPromises);
+        console.log("Uploaded new assets:", newTaskAssets);
       }
-
-      // Combine uploaded assets and provided task asset IDs
-      const allTaskAssetsIds = [...taskAssets, ...(taskAssetsIds || [])];
 
       const updatedComment = await commentService.updateComment(
         commentId,
         userId,
         message,
-        allTaskAssetsIds // Use combined task assets IDs
+        newTaskAssets, // New assets to add (URLs)
+        taskAssetsToRemove // Existing asset IDs to remove
       );
 
-      return res.status(200).json({
+      return res.status(HttpStatusCode.OK).json({
         message: "Comment updated successfully",
         updatedComment,
       });
@@ -240,7 +236,6 @@ export class CommentController {
       });
     }
   }
-
   async getComment(req: Request, res: Response) {
     const { commentId } = req.params;
 

@@ -1,42 +1,37 @@
-import { UserDTO } from "./userdto";
-import { TaskDTO } from "./taskDto"; // Import the TaskDTO if you have one
-
+import { Comment } from "../entities/Commnets/commnetsEntity";
+import { TaskAsset } from "../entities/TaskAsset/taskAssetEntity";
+// commentDto.ts
 export class CommentDto {
   commentId: string;
   message: string;
   createdAt: Date;
   updatedAt: Date;
-  user: UserDTO;
-  task: TaskDTO; // Add task property
+  taskAssets: TaskAssetDto[];
 
-  constructor(comment: any) {
-    this.commentId = comment.commentId;
-    this.message = comment.message;
-    this.createdAt = comment.createdAt;
-    this.updatedAt = comment.updatedAt;
-    this.user = new UserDTO(comment.user);
-    this.task = new TaskDTO(comment.task); // Initialize task
-  }
-
-  static fromEntity(comment: any): CommentDto {
-    return new CommentDto({
+  static fromEntity(comment: Comment): CommentDto {
+    return {
       commentId: comment.commentId,
       message: comment.message,
       createdAt: comment.createdAt,
       updatedAt: comment.updatedAt,
-      user: {
-        userId: comment.user.userId,
-        name: comment.user.name,
-        // Include other user properties if needed
-      },
-      task: {
-        taskId: comment.task.taskId,
-        name: comment.task.name,
-        description: comment.task.description,
-        createdAt: comment.task.createdAt,
-        updatedAt: comment.task.updatedAt,
-        // Include other task properties if needed
-      },
-    });
+      taskAssets: Array.isArray(comment.taskAssets)
+        ? comment.taskAssets.map(TaskAssetDto.fromEntity)
+        : [],
+    };
+  }
+}
+
+// taskAssetDto.ts
+export class TaskAssetDto {
+  taskAssetId: string;
+  fileType: string;
+  fileLocation: string;
+
+  static fromEntity(taskAsset: TaskAsset): TaskAssetDto {
+    return {
+      taskAssetId: taskAsset.taskAssetId,
+      fileType: taskAsset.fileType,
+      fileLocation: taskAsset.fileLocation,
+    };
   }
 }

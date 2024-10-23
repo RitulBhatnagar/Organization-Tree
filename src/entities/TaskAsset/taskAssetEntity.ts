@@ -31,6 +31,8 @@ export class TaskAsset extends BaseModel {
   @Column()
   fileLocation!: string;
 
-  @ManyToOne(() => Comment, (commnet) => commnet.taskAssets)
-  commnet!: Comment;
+  @ManyToOne(() => Comment, (comment) => comment.taskAssets, {
+    cascade: true,
+  })
+  comment!: Comment;
 }

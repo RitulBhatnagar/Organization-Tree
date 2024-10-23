@@ -16,6 +16,8 @@ import commentRoutes from "./routes/v1/comment.routes";
 import taskHistoryRoutes from "./routes/v1/taskHistory.routes";
 import taskAnalyticsRoutes from "./routes/v1/taskAnalytics.routes";
 import notificationRoutes from "./routes/v1/notifcation.routes";
+import eventRoutes from "./routes/v1/event.routes";
+import inventoryRoutes from "./routes/v1/inventory.routes";
 import swaggerDocs from "./utils/swagger";
 import { startCronJobs } from "./config/cron";
 
@@ -45,6 +47,8 @@ const routes = [
   { path: "task-history", router: taskHistoryRoutes },
   { path: "task-analytics", router: taskAnalyticsRoutes },
   { path: "notification", router: notificationRoutes },
+  { path: "event", router: eventRoutes },
+  { path: "inventory", router: inventoryRoutes },
 ];
 routes.forEach(({ path, router }) => {
   app.use(`/api/v${ENV.version}`, router);

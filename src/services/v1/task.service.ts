@@ -1,5 +1,4 @@
 import { In, DataSource, Repository } from "typeorm";
-import { v4 as uuidv4 } from "uuid";
 import {
   CompletedStatusEnum,
   Task,
@@ -24,7 +23,7 @@ import { TaskDTO } from "../../dtos/taskDto";
 import { AppDataSource } from "../../config/data-source";
 import { PaginationParams, taskFilters } from "../../types";
 import { UserRole } from "../../entities/Role/roleEntity";
-import { query } from "express";
+import { Comment } from "../../entities/Commnets/commnetsEntity";
 
 export class TaskService {
   private taskRepo: Repository<Task>;
@@ -570,6 +569,7 @@ export class TaskService {
         .leftJoinAndSelect("task.relatedBrand", "brand")
         .leftJoinAndSelect("task.relatedEvent", "event")
         .leftJoinAndSelect("task.relatedInventory", "inventory")
+        .leftJoin("task.comments", "comments") // Join the comments table
         .select([
           "task.taskId",
           "task.name",
@@ -588,7 +588,20 @@ export class TaskService {
           "event.name",
           "inventory.inventoryId",
           "inventory.name",
-        ]);
+        ])
+        .addSelect("COUNT(comments.commentId)", "commentCount")
+        .groupBy("task.taskId")
+        .addGroupBy("creator.userId")
+        .addGroupBy("creator.name")
+        .addGroupBy("assignedPersons.assignedPersonId")
+        .addGroupBy("assignedUser.userId")
+        .addGroupBy("brand.brandId")
+        .addGroupBy("brand.brandName")
+        .addGroupBy("event.eventId")
+        .addGroupBy("event.name")
+        .addGroupBy("inventory.inventoryId")
+        .addGroupBy("inventory.name");
+
       if (filters.taskType) {
         queryBuilder.andWhere("task.taskType = :taskType", {
           taskType: filters.taskType,
@@ -673,9 +686,12 @@ export class TaskService {
       const totalCount = await queryBuilder.getCount();
       queryBuilder.skip(skip).take(limit);
 
-      const tasks = await queryBuilder.getMany();
+      const tasks = await queryBuilder.getRawAndEntities();
       return {
-        data: tasks,
+        data: tasks.entities.map((task, index) => ({
+          ...task,
+          commentCount: parseInt(tasks.raw[index].task_commentCount, 10) || 0,
+        })),
         meta: {
           total: totalCount,
           page,

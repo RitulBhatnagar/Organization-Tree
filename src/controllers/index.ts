@@ -9,3 +9,5 @@ export * from "./v1/task.controller";
 export * from "./v1/taskHistory.controller";
 export * from "./v1/taskAnalytics.controller";
 export * from "./v1/notifcation.controller";
+export * from "./v1/event.controller";
+export * from "./v1/inventory.controller";
