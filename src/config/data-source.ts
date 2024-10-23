@@ -1,6 +1,12 @@
 import { DataSource } from "typeorm";
 import { ENV } from "./env";
 import { Node } from "../entities/node/nodeEntity";
+import { Organization } from "../entities/organization/organizationEntity";
+import { Brand } from "../entities/Brand/brandEntity";
+import { User } from "../entities/user/userEntity";
+import { Role } from "../entities/Role/roleEntity";
+import { Team } from "../entities/Team/teamEntity";
+import { ContactPerson } from "../entities/ContactPerson/contactPersonEntity";
 
 export const AppDataSource = new DataSource({
   type: "mysql",
@@ -9,12 +15,16 @@ export const AppDataSource = new DataSource({
   username: ENV.DB_USERNAME,
   password: ENV.DB_PASSWORD,
   database: ENV.DB_DATABASE,
-  synchronize: true,
+  synchronize: false,
   logging: false,
-  entities: [Node],
-  migrations: ["src/migrations/*.ts"],
-  subscribers: ["src/subscribers/*.ts"],
+  entities: [Node, Organization, User, Role, Team, Brand, ContactPerson],
+  migrations: [__dirname + "/../migrations/*.ts"],
+  subscribers: [],
   ssl: {
     rejectUnauthorized: false,
+  },
+  extra: {
+    connnectionLimit: ENV.NODE_ENV === "prod" ? 10 : 2,
+    queueLimit: 0,
   },
 });

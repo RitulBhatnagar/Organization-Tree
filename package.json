@@ -6,8 +6,13 @@
   "scripts": {
     "start": "node dist/index",
     "dev": "tsc-watch --onSuccess \"node ./dist/index.js\"",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "tsc -p . && npm run sentry:sourcemaps"
+    "migration:generate": "npx typeorm-ts-node-commonjs migration:generate src/migrations/Migration -d src/config/data-source.ts",
+    "migration:run": "npx typeorm-ts-node-commonjs migration:run -d src/config/data-source.ts",
+    "migration:show": "npx typeorm-ts-node-commonjs migration:show -d src/config/data-source.ts",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "build": "tsc"
   },
   "keywords": [],
   "author": "",
@@ -15,9 +20,18 @@
   "devDependencies": {
     "@types/dotenv-safe": "^8.1.6",
     "@types/express": "^4.17.21",
+    "@types/jest": "^29.5.13",
+    "@types/jsonwebtoken": "^9.0.7",
     "@types/node": "^22.5.5",
+    "@types/supertest": "^6.0.2",
     "@types/uuid": "^10.0.0",
     "@types/yauzl": "^2.10.3",
+    "cross-env": "^7.0.3",
+    "dotenv": "^16.4.5",
+    "jest": "^29.7.0",
+    "jest-mock-extended": "^4.0.0-beta1",
+    "supertest": "^7.0.0",
+    "ts-jest": "^29.2.5",
     "ts-node": "^10.9.2",
     "tsc-watch": "^6.2.0",
     "typescript": "^5.6.2"
@@ -25,9 +39,11 @@
   "dependencies": {
     "@types/swagger-jsdoc": "^6.0.4",
     "@types/swagger-ui-express": "^4.1.6",
-    "dotenv": "^16.4.5",
+    "argon2": "^0.41.1",
+    "class-transformer": "^0.5.1",
     "dotenv-safe": "^9.1.0",
     "express": "^4.21.0",
+    "jsonwebtoken": "^9.0.2",
     "mysql2": "^3.11.3",
     "reflect-metadata": "^0.2.2",
     "swagger-jsdoc": "^6.2.8",

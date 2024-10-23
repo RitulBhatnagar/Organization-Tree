@@ -1,3 +1,4 @@
+// src/entities/Node.ts
 import {
   Entity,
   Column,
@@ -6,6 +7,7 @@ import {
   JoinColumn,
 } from "typeorm";
 import { BaseModel } from "../../utils/baseEntity/baseModel";
+import { Organization } from "../organization/organizationEntity"; // Import the Organization entity
 
 export enum NodeType {
   ORGANIZATION = "organization",
@@ -31,8 +33,13 @@ export class Node extends BaseModel {
   @Column({ type: "uuid", nullable: true })
   parentId!: string | null;
 
-  // Optional relations if you plan on defining them later
   @ManyToOne(() => Node, (node) => node.nodeid)
   @JoinColumn({ name: "parentId" })
   parent?: Node;
+
+  @ManyToOne(() => Organization, (organization) => organization.nodes, {
+    nullable: true,
+  })
+  @JoinColumn({ name: "orgId" })
+  organization?: Organization;
 }
