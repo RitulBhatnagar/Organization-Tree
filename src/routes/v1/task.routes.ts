@@ -35,6 +35,7 @@ router.delete(
 );
 
 router.get("/tasks", authenticate, taskController.getTasks);
+router.get("/tasks/filters", authenticate, taskController.getFilterCounts);
 
 router.get("/task/:taskId", authenticate, taskController.getTask);
 
