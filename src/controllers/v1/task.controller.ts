@@ -50,7 +50,9 @@ export class TaskController {
 
       return res.status(201).json({
         message: "Task created successfully",
-        task: task,
+        taskId: task.taskId,
+        taskName: task.name,
+        taskType: task.taskType,
       });
     } catch (error) {
       logger.error("Error creating task", error);
@@ -283,83 +285,6 @@ export class TaskController {
 
     try {
       const filterCounts = await taskService.getFilterCounts(filterParams);
-      // return res.status(HttpStatusCode.OK).json({
-      //   message: "Filters retrieved successfully",
-      //   filters: {
-      //     taskTypes: [
-      //       { type: "All", count: filterCounts.totalCount },
-      //       {
-      //         type: "General Service",
-      //         count:
-      //           filterCounts.taskTypes.find((t) => t.type === "GENERAL")
-      //             ?.count || 0,
-      //       },
-      //       {
-      //         type: "Brand",
-      //         count:
-      //           filterCounts.taskTypes.find((t) => t.type === "BRAND")?.count ||
-      //           0,
-      //       },
-      //       {
-      //         type: "Event",
-      //         count:
-      //           filterCounts.taskTypes.find((t) => t.type === "EVENT")?.count ||
-      //           0,
-      //       },
-      //       {
-      //         type: "Inventory",
-      //         count:
-      //           filterCounts.taskTypes.find((t) => t.type === "INVENTORY")
-      //             ?.count || 0,
-      //       },
-      //     ],
-      //     assignedBy: filterCounts.assignedBy.map((user) => ({
-      //       userId: user.userId,
-      //       name: user.name,
-      //       count: user.count,
-      //     })),
-      //     assignedTo: filterCounts.assignedTo.map((user) => ({
-      //       userId: user.userId,
-      //       name: user.name,
-      //       count: user.count,
-      //     })),
-      //     teamOwners: filterCounts.teamOwners.map((owner) => ({
-      //       userId: owner.userId,
-      //       name: owner.name,
-      //       count: owner.count,
-      //     })),
-      //     brands: filterCounts.brands.map((brand) => ({
-      //       brandId: brand.brandId,
-      //       name: brand.name,
-      //       count: brand.count,
-      //     })),
-      //     inventories: filterCounts.inventories.map((inventory) => ({
-      //       inventoryId: inventory.inventoryId,
-      //       name: inventory.name,
-      //       count: inventory.count,
-      //     })),
-      //     events: filterCounts.events.map((event) => ({
-      //       eventId: event.eventId,
-      //       name: event.name,
-      //       count: event.count,
-      //     })),
-      //     dueDates: [
-      //       { type: "All", count: filterCounts.totalCount },
-      //       {
-      //         type: "Upcoming",
-      //         count:
-      //           filterCounts.dueDates.find((d) => d.type === "upcoming")
-      //             ?.count || 0,
-      //       },
-      //       {
-      //         type: "Overdue",
-      //         count:
-      //           filterCounts.dueDates.find((d) => d.type === "overdue")
-      //             ?.count || 0,
-      //       },
-      //     ],
-      //   },
-      // });
 
       return res.status(HttpStatusCode.OK).json({
         filterCounts,

@@ -17,6 +17,7 @@ import { Inventory } from "../entities/Inventory/inventoryEntity";
 import { AssignedPerson } from "../entities/AssignedPerson/assignedPersonEntity";
 import { Event } from "../entities/Event/eventEntity";
 import { Comment } from "../entities/Commnets/commnetsEntity";
+import { Collaborators } from "../entities/Collaborators/collaboratorsEntity";
 
 export const AppDataSource = new DataSource({
   type: "mysql",
@@ -47,6 +48,7 @@ export const AppDataSource = new DataSource({
     AssignedPerson,
     Event,
     Inventory,
+    Collaborators,
   ],
   migrations: [__dirname + "/../migrations/*.ts"],
   subscribers: [],

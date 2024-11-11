@@ -1,5 +1,6 @@
 import "reflect-metadata";
 import express, { Application } from "express";
+import { initializeSocket } from "./socket";
 import logger from "./utils/logger";
 import "./listeners/taskEventListeners";
 import { AppDataSource } from "./config/data-source";
@@ -18,7 +19,7 @@ import taskAnalyticsRoutes from "./routes/v1/taskAnalytics.routes";
 import notificationRoutes from "./routes/v1/notifcation.routes";
 import eventRoutes from "./routes/v1/event.routes";
 import inventoryRoutes from "./routes/v1/inventory.routes";
-import swaggerDocs from "./utils/swagger";
+import collaboratorRoutes from "./routes/v1/collaborator.routes";
 import { startCronJobs } from "./config/cron";
 
 // Initialize Express App
@@ -49,6 +50,7 @@ const routes = [
   { path: "notification", router: notificationRoutes },
   { path: "event", router: eventRoutes },
   { path: "inventory", router: inventoryRoutes },
+  { path: "collaborators", router: collaboratorRoutes },
 ];
 routes.forEach(({ path, router }) => {
   app.use(`/api/v${ENV.version}`, router);
@@ -62,7 +64,11 @@ AppDataSource.initialize()
     // start the cron job services
     startCronJobs();
 
+    // intialize socket io server
     const server: HttpServer = createServer(app);
+
+    initializeSocket(server);
+
     server.listen(port, () => {
       logger.info(`Server is running on port ${port}`);
     });

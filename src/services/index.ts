@@ -7,3 +7,4 @@ export * from "./v1/comment.service";
 export * from "./v1/node.service";
 export * from "./v1/taskHistory.service";
 export * from "./v1/notification.service";
+export * from "./v1/collaborator.service";

@@ -20,16 +20,12 @@ import {
   TASK_UPDATED,
 } from "../../events/events";
 import { TaskDTO } from "../../dtos/taskDto";
-import { AppDataSource } from "../../config/data-source";
 import {
   FilterCounts,
   FilterParams,
   PaginationParams,
   taskFilters,
 } from "../../types";
-import { UserRole } from "../../entities/Role/roleEntity";
-import { Comment } from "../../entities/Commnets/commnetsEntity";
-import { FilterRulesPackageArnList } from "aws-sdk/clients/inspector";
 
 export class TaskService {
   private taskRepo: Repository<Task>;
@@ -114,7 +110,7 @@ export class TaskService {
       await queryRunner.manager.save(assignedPersons);
 
       logger.info("Emitting TASK_CREATED event");
-      eventEmitter.emit("TASK_CREATED", savedTask, creator, assignedUsers);
+      eventEmitter.emit(TASK_CREATED, savedTask, creator, assignedUsers);
 
       await queryRunner.commitTransaction();
       // Emit event and return task

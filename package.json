@@ -53,6 +53,7 @@
     "mysql2": "^3.11.3",
     "node-cron": "^3.0.3",
     "reflect-metadata": "^0.2.2",
+    "socket.io": "^4.8.1",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
     "typeorm": "^0.3.20",
