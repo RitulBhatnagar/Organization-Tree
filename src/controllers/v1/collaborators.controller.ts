@@ -39,7 +39,6 @@ export class CollaboratorsController {
       );
       return res.status(HttpStatusCode.CREATED).json({
         message: "Collaborators added successfully",
-        data: newCollaborators,
       });
     } catch (error) {
       logger.error("Error adding collaborators", error);
@@ -125,7 +124,7 @@ export class CollaboratorsController {
 
       return res.status(HttpStatusCode.OK).json({
         message: "Collaborators tasks fetched successfully",
-        data: collaboratorsTasks,
+        ...collaboratorsTasks,
       });
     } catch (error) {
       logger.error("Error getting collaborators tasks", error);

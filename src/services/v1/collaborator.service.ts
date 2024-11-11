@@ -228,6 +228,19 @@ export class CollaboratorsService {
       const { page = 1, limit = 10 } = paginationParams;
       const skip = (page - 1) * limit;
 
+      const user = await this.userRepo.findOne({
+        where: { userId },
+      });
+
+      if (!user) {
+        throw new APIError(
+          ErrorCommonStrings.NOT_FOUND,
+          HttpStatusCode.NOT_FOUND,
+          false,
+          "User not found"
+        );
+      }
+
       const [collaboratorsEntires, total] =
         await this.collaboratorsRepo.findAndCount({
           where: { user: { userId } },

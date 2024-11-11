@@ -1,10 +1,7 @@
 import { TaskHistory } from "../../../src/entities/TaskHistory/taskHistoryEntity";
 import { TaskHistoryService } from "../../../src/services";
 import { AppDataSource } from "../../../src/config/data-source";
-import APIError from "../../../src/middleware/errorMiddlware";
 import { PaginationParams } from "../../../src/types";
-import { resourceUsage } from "process";
-import { mock } from "node:test";
 
 describe("TaskHistoryService", () => {
   let taskHistoryService: TaskHistoryService;
