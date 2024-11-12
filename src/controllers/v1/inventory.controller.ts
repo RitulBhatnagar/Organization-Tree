@@ -79,7 +79,6 @@ export class InventoryController {
 
       return res.status(HttpStatusCode.OK).json({
         message: "Inventory updated successfully",
-        inventory,
       });
     } catch (error) {
       logger.error("Error in updateInventory controller:", error);

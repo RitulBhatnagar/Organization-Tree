@@ -21,6 +21,7 @@ import eventRoutes from "./routes/v1/event.routes";
 import inventoryRoutes from "./routes/v1/inventory.routes";
 import collaboratorRoutes from "./routes/v1/collaborator.routes";
 import { startCronJobs } from "./config/cron";
+import { swaggerDocs } from "./config/swagger";
 
 // Initialize Express App
 const app: Application = express();
@@ -73,7 +74,7 @@ AppDataSource.initialize()
       logger.info(`Server is running on port ${port}`);
     });
 
-    // swaggerDocs(app, port);
+    swaggerDocs(app);
   })
   .catch((err) => {
     logger.error("Error during Data Source initialization:", err);

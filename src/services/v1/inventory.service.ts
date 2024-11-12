@@ -59,16 +59,10 @@ export class InventoryService {
     try {
       const inventory = await this.inventoryRepo.findOne({
         where: { inventoryId },
-        relations: ["task"],
         select: {
           inventoryId: true,
           name: true,
           description: true,
-          task: {
-            taskId: true,
-            taskType: true,
-            name: true,
-          },
         },
       });
       if (!inventory) {

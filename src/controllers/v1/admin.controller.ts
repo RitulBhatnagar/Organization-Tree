@@ -16,8 +16,6 @@ export class AdminController {
       });
     }
     const accessLevel = req.user?.accessLevel;
-    console.log("userId", userId);
-    console.log("accessLevel", accessLevel);
     // Input validation
     if (!name || name.trim() === "" || typeof name !== "string") {
       return res.status(HttpStatusCode.BAD_REQUEST).json({
