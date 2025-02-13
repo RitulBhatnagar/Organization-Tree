@@ -35,4 +35,25 @@ export class TeamMangementController {
       });
     }
   }
+
+  async getTeam(req: Request, res: Response) {
+    const { teamId } = req.params;
+    try {
+      const team = await teamManagementService.getTeam(teamId);
+      return res.status(200).json({
+        message: "Team retrieved successfully",
+        team,
+      });
+    } catch (error) {
+      logger.error("Error while getting team", error);
+      if (error instanceof APIError) {
+        return res.status(error.httpCode).json({
+          message: error.message,
+        });
+      }
+      return res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
+        message: localConstant.ERROR_GETTING_TEAM_MEMBERS,
+      });
+    }
+  }
 }

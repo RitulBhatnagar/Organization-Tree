@@ -24,7 +24,10 @@ export class UserController {
         page,
         limit,
       });
-      return res.status(200).json(users);
+      return res.status(200).json({
+        message: "User fetched successfully",
+        ...users,
+      });
     } catch (error) {
       logger.error("Error while searching users", error);
       return res.status(500).json({ message: "Error while searching users" });
@@ -40,7 +43,9 @@ export class UserController {
         page,
         limit,
       });
-      return res.status(200).json(teamMembers);
+      return res
+        .status(200)
+        .json({ message: "Team members fetched successfully", ...teamMembers });
     } catch (error) {
       logger.error("Error while getting team members", error);
       return res

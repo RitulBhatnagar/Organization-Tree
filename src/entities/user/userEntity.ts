@@ -6,12 +6,18 @@ import {
   OneToMany,
   Entity,
   PrimaryGeneratedColumn,
+  OneToOne,
 } from "typeorm";
 import { BaseModel } from "../../utils/baseEntity/baseModel";
 import { Role } from "../Role/roleEntity";
 import { Team } from "../Team/teamEntity";
 import { Brand } from "../Brand/brandEntity";
-
+import { Comment } from "../Commnets/commnetsEntity";
+import { AssignedPerson } from "../AssignedPerson/assignedPersonEntity";
+import { TaskHistory } from "../TaskHistory/taskHistoryEntity";
+import { Inbox } from "../Inbox/inboxEntity";
+import { Task } from "../Task/taskEntity";
+import { Collaborators } from "../Collaborators/collaboratorsEntity";
 @Entity()
 export class User extends BaseModel {
   @PrimaryGeneratedColumn("uuid")
@@ -49,4 +55,27 @@ export class User extends BaseModel {
 
   @OneToMany(() => User, (user) => user.manager)
   subordinates!: User[];
+
+  @OneToMany(() => Comment, (comment) => comment.user)
+  @JoinTable()
+  comments!: Comment[];
+
+  @OneToMany(() => AssignedPerson, (assignedPerson) => assignedPerson.user)
+  @JoinTable()
+  assignedTasks!: AssignedPerson[];
+
+  @OneToMany(() => TaskHistory, (taskHistory) => taskHistory.user)
+  @JoinTable()
+  taskHistories!: TaskHistory[];
+
+  @OneToMany(() => Task, (task) => task.creator)
+  @JoinTable()
+  tasksCreated!: Task[];
+
+  @OneToMany(() => Collaborators, (collaborators) => collaborators.user)
+  @JoinTable()
+  collaborators!: Collaborators[];
+
+  @OneToOne(() => Inbox, (inbox) => inbox.user, { cascade: true })
+  inbox: Inbox;
 }

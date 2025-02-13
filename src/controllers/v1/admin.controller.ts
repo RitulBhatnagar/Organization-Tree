@@ -9,8 +9,13 @@ const adminService = new AdminService();
 export class AdminController {
   async createUser(req: Request, res: Response) {
     const { name, email, department, password } = req.body;
-    const { userId } = req.body.user;
-
+    const userId = req.user?.userId;
+    if (!req.user || !req.user.userId) {
+      return res.status(HttpStatusCode.UNAUTHORIZED).json({
+        message: "User not authenticated.",
+      });
+    }
+    const accessLevel = req.user?.accessLevel;
     // Input validation
     if (!name || name.trim() === "" || typeof name !== "string") {
       return res.status(HttpStatusCode.BAD_REQUEST).json({
@@ -42,7 +47,7 @@ export class AdminController {
 
     try {
       const user = await adminService.createUser(
-        userId,
+        userId as string,
         name,
         email,
         department,
@@ -112,7 +117,6 @@ export class AdminController {
   async assignUserToTeam(req: Request, res: Response) {
     const { userId } = req.params;
     const { teamId } = req.body;
-    const { userId: adminId } = req.body.user;
 
     if (!userId || userId.trim() == "" || typeof userId !== "string") {
       return res.status(HttpStatusCode.BAD_REQUEST).json({

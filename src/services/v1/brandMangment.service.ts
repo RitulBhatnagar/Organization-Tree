@@ -8,7 +8,6 @@ import { ContactPerson } from "../../entities/ContactPerson/contactPersonEntity"
 import { User } from "../../entities/user/userEntity";
 import logger from "../../utils/logger";
 import { ContactPersonDTO } from "../../dtos/contactPersondto";
-import { UserRole } from "../../entities/Role/roleEntity";
 import { BrandDTO } from "../../dtos/brandDto";
 import { BrandLimitedDTO } from "../../dtos/brandLimiteddto";
 export class BrandManagementService {
@@ -50,11 +49,9 @@ export class BrandManagementService {
     }
   }
 
-  async addContactPerson(
-    brandId: string,
-    contactPersonData: Omit<ContactPerson, "contactId" | "brand">
-  ) {
+  async addContactPerson(brandId: string, contactPersonData: contactPerson) {
     try {
+      logger.info("entering in the service ");
       const brand = await this.brandRepository.findOne({
         where: { brandId },
         relations: ["contactPersons"],
@@ -73,11 +70,19 @@ export class BrandManagementService {
         ...contactPersonData,
         brand: brand,
       });
+      console.log("newContactPerson", newContactPerson);
 
       await this.contactPersonRepo.save(newContactPerson);
 
-      return newContactPerson;
+      return {
+        contactId: newContactPerson.contactId,
+        name: newContactPerson.name,
+        phone: newContactPerson.phone,
+        email: newContactPerson.email,
+        createdAt: newContactPerson.createdAt,
+      };
     } catch (error) {
+      logger.error("Error while saving contact person details", error);
       if (error instanceof APIError) {
         throw error;
       }
