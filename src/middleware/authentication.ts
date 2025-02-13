@@ -1,7 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import logger from "../utils/logger";
-import { User } from "../entities/user/userEntity";
-import { UserRole } from "../entities/Role/roleEntity";
+
 import { HttpStatusCode } from "./errorMiddlware";
 import jwt from "jsonwebtoken";
 import { ENV } from "../config/env";

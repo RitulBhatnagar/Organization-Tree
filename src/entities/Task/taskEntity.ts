@@ -15,6 +15,7 @@ import { TaskHistory } from "../TaskHistory/taskHistoryEntity";
 import { Event } from "../Event/eventEntity";
 import { Inventory } from "../Inventory/inventoryEntity";
 import { User } from "../user/userEntity";
+import { Collaborators } from "../Collaborators/collaboratorsEntity";
 export enum TaskVisibilityEnum {
   ALL_TASKS = "ALL_TASKS",
   YOUR_TASKS = "YOUR_TASKS",
@@ -87,6 +88,9 @@ export class Task extends BaseModel {
 
   @ManyToOne(() => User, (user) => user.tasksCreated)
   creator!: User;
+
+  @OneToMany(() => Collaborators, (collaborators) => collaborators.task)
+  collaborators!: Collaborators[];
 
   @OneToMany(() => AssignedPerson, (assignedPerson) => assignedPerson.task)
   assignedPersons!: AssignedPerson[];

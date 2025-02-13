@@ -7,6 +7,8 @@ import {
   COMMENT_ADDED,
   COMMENT_DELETED,
   COMMENT_UPDATED,
+  COLLABORATOR_ADDED,
+  COLLABORATOR_REMOVED,
 } from "../events/events";
 
 import { eventEmitter } from "../utils/eventEmitter";
@@ -16,6 +18,7 @@ import logger from "../utils/logger";
 import { TaskAnalyticsService } from "../services/v1/taskAnalytics.service";
 import { NotificationService } from "../services/v1/notification.service";
 import { AssignedPerson } from "../entities/AssignedPerson/assignedPersonEntity";
+import { Collaborators } from "../entities/Collaborators/collaboratorsEntity";
 
 const notificationService = new NotificationService();
 const taskHistoryService = new TaskHistoryService();
@@ -244,3 +247,93 @@ eventEmitter.on(COMMENT_UPDATED, async (task: Task, updatedBy: User) => {
     logger.error("Error handling COMMENT_ADDED event:", error);
   }
 });
+
+eventEmitter.on(
+  COLLABORATOR_ADDED,
+  async (
+    task: Task,
+    addedBy: User,
+    names: string[],
+    collaborators: Collaborators[]
+  ) => {
+    logger.info("Collaborator added event has been triggered");
+
+    try {
+      await taskHistoryService.createTaskHistory(
+        task,
+        addedBy,
+        `${addedBy.name} has added ${names} as collaborators
+
+    }`
+      );
+      logger.info(
+        "Task history has been added for the COLLABORATOR_ADDED event"
+      );
+    } catch (error) {
+      logger.error("Error handling COLLABORATOR_ADDED event:", error);
+    }
+
+    try {
+      await Promise.all(
+        collaborators.map((collaborator) =>
+          notificationService.sendNotification(
+            `${addedBy.name} has added you as a collaborator to the task ${task.name}, taskId is ${task.taskId}`,
+            collaborator.user
+          )
+        )
+      );
+      logger.info(
+        `Notifications sent for task ${task.taskId} to added collaborators.`
+      );
+    } catch (error) {
+      logger.error(
+        "Error sending notifications for COLLABORATOR_ADDED event",
+        error
+      );
+    }
+  }
+);
+
+eventEmitter.emit(
+  COLLABORATOR_REMOVED,
+  async (
+    task: Task,
+    removedBy: User,
+    names: string[],
+    removedUsers: User[]
+  ) => {
+    logger.info("Collaborator removed event has been triggered");
+
+    try {
+      await taskHistoryService.createTaskHistory(
+        task,
+        removedBy,
+        `${removedBy.name} has removed ${names} as collaborators`
+      );
+      logger.info(
+        "Task history has been added for the COLLABORATOR_REMOVED event"
+      );
+    } catch (error) {
+      logger.error("Error handling COLLABORATOR_REMOVED event:", error);
+    }
+
+    try {
+      await Promise.all(
+        removedUsers.map((user) =>
+          notificationService.sendNotification(
+            `${removedBy.name} has removed you as a collaborator to the task ${task.name}, taskId is ${task.taskId}`,
+            user
+          )
+        )
+      );
+      logger.info(
+        `Notifications sent for task ${task.taskId} to removed collaborators.`
+      );
+    } catch (error) {
+      logger.error(
+        "Error sending notifications for COLLABORATOR_REMOVED event",
+        error
+      );
+    }
+  }
+);

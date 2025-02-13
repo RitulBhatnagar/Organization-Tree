@@ -11,3 +11,4 @@ export * from "./v1/taskAnalytics.controller";
 export * from "./v1/notifcation.controller";
 export * from "./v1/event.controller";
 export * from "./v1/inventory.controller";
+export * from "./v1/collaborators.controller";

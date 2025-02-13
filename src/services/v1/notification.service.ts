@@ -1,3 +1,4 @@
+import { create } from "domain";
 import { AppDataSource } from "../../config/data-source";
 import { AssignedPerson } from "../../entities/AssignedPerson/assignedPersonEntity";
 import { Inbox } from "../../entities/Inbox/inboxEntity";
@@ -68,39 +69,32 @@ export class NotificationService {
       const { page = 1, limit = 10 } = paginationParams;
       const skip = (page - 1) * limit;
 
-      // Fetch inboxes along with their messages
-      const [inboxes, total] = await this.inboxRepo.findAndCount({
-        where: { user: { userId } },
-        relations: ["messages"],
+      // Query messages directly with pagination for the user's inboxes
+      const [messages, total] = await this.messageRepo.findAndCount({
+        where: { inbox: { user: { userId } } },
+        relations: ["inbox"],
         take: limit,
         skip: skip,
       });
 
-      const notifications = inboxes
-        .map((inbox) => {
-          if (inbox.messages.length > 0) {
-            const firstMessage = inbox.messages[0];
-            return {
-              id: firstMessage.messageId,
-              message: firstMessage.message,
-              seen: firstMessage.seen,
-              createdAt: firstMessage.createdAt,
-            };
-          }
-          return null;
-        })
-        .filter((notification) => notification !== null);
+      const notifications = messages.map((message) => ({
+        id: message.messageId,
+        message: message.message,
+        seen: message.seen,
+        createdAt: message.createdAt,
+      }));
 
       return {
         data: notifications,
         meta: {
-          total,
+          total, // Total number of messages
           page,
           limit,
           totalPages: Math.ceil(total / limit),
         },
       };
     } catch (error) {
+      logger.error("Error while getting notifications", error);
       throw new APIError(
         ErrorCommonStrings.INTERNAL_SERVER_ERROR,
         HttpStatusCode.INTERNAL_SERVER_ERROR,
@@ -109,6 +103,7 @@ export class NotificationService {
       );
     }
   }
+
   async markAsSeen(messageId: string) {
     try {
       const message = await this.messageRepo.findOneBy({ messageId });

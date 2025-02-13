@@ -17,6 +17,7 @@ import { AssignedPerson } from "../AssignedPerson/assignedPersonEntity";
 import { TaskHistory } from "../TaskHistory/taskHistoryEntity";
 import { Inbox } from "../Inbox/inboxEntity";
 import { Task } from "../Task/taskEntity";
+import { Collaborators } from "../Collaborators/collaboratorsEntity";
 @Entity()
 export class User extends BaseModel {
   @PrimaryGeneratedColumn("uuid")
@@ -70,6 +71,10 @@ export class User extends BaseModel {
   @OneToMany(() => Task, (task) => task.creator)
   @JoinTable()
   tasksCreated!: Task[];
+
+  @OneToMany(() => Collaborators, (collaborators) => collaborators.user)
+  @JoinTable()
+  collaborators!: Collaborators[];
 
   @OneToOne(() => Inbox, (inbox) => inbox.user, { cascade: true })
   inbox: Inbox;

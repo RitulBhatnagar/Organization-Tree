@@ -3,8 +3,6 @@ import { NodeService } from "../../../src/services/v1/node.service"; // Import t
 import { Node, NodeType } from "../../../src/entities/node/nodeEntity"; // Mocked entities
 import { Organization } from "../../../src/entities/organization/organizationEntity";
 import { AppDataSource } from "../../../src/config/data-source";
-import APIError from "../../../src/middleware/errorMiddlware";
-import logger from "../../../src/utils/logger";
 
 jest.mock("../../../src/config/data-source", () => ({
   AppDataSource: {

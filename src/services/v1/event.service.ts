@@ -55,16 +55,10 @@ export class EventService {
     try {
       const event = await this.eventRepo.findOne({
         where: { eventId },
-        relations: ["task"],
         select: {
           eventId: true,
           name: true,
           description: true,
-          task: {
-            taskId: true,
-            taskType: true,
-            name: true,
-          },
         },
       });
       if (!event) {

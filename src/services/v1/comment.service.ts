@@ -20,6 +20,7 @@ import { CommentDto } from "../../dtos/commentDto";
 import mime from "mime-types";
 import { S3StorageService } from "./cloudServices/s3.service";
 import logger from "../../utils/logger";
+import { getIo } from "../../socket";
 
 function determineFileType(url: string): FileTypeEnum {
   const mimeType = mime.lookup(url);
@@ -116,6 +117,15 @@ export class CommentService {
       logger.info(`Comment has been added to task ${task.taskId}`);
       // Emit the event after saving the comment
       eventEmitter.emit("COMMENT_ADDED", task, user);
+
+      // Emit the Socket.IO event to all connected clients
+      const io = getIo();
+      io.emit("comment_added", {
+        taskId: task.taskId,
+        userId: user.userId,
+        message: savedComment.message,
+        taskAssets: savedComment.taskAssets,
+      });
 
       return CommentDto.fromEntity(comment);
     } catch (error) {
